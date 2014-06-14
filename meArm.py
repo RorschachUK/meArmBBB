@@ -86,6 +86,7 @@ class meArm():
     	
     def openGripper(self):
         """Open the gripper, dropping whatever is being carried"""
+        print self.gripper
     	PWM.set_duty_cycle(self.gripper, self.angle2pwm("gripper", pi/4.0))
     	time.sleep(0.3)
     	
