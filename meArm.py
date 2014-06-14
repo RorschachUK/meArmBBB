@@ -1,11 +1,10 @@
 # meArm.py - York Hack Space May 2014
-# A motion control library for Phenoptix meArm using Adafruit 16-channel PWM servo driver
+# A motion control library for Phenoptix meArm for the Beaglebone Black
 
 import kinematics
 import time
 from math import pi
 import Adafruit_BBIO.PWM as PWM
-PWM.start("P9_14", 50)
 
 class meArm():
     def __init__(self, sweepMinBase = 145, sweepMaxBase = 49, angleMinBase = -pi/4, angleMaxBase = pi/4,
