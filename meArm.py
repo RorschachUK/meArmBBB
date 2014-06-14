@@ -29,8 +29,8 @@ class meArm():
     	PWM.start(self.shoulder, 60, 60.0)
     	PWM.start(self.elbow, 60, 60.0)
     	PWM.start(self.gripper, 60, 60.0)
-    	self.openGripper()
     	self.goDirectlyTo(0, 100, 50)
+    	self.openGripper()
     	
     def setupServo(self, n_min, n_max, a_min, a_max):
         """Calculate servo calibration record to place in self.servoInfo"""
