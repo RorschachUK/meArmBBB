@@ -1,10 +1,11 @@
 # meArm.py - York Hack Space May 2014
 # A motion control library for Phenoptix meArm using Adafruit 16-channel PWM servo driver
 
-from Adafruit_PWM_Servo_Driver import PWM
 import kinematics
 import time
 from math import pi
+import Adafruit_BBIO.PWM as PWM
+PWM.start("P9_14", 50)
 
 class meArm():
     def __init__(self, sweepMinBase = 145, sweepMaxBase = 49, angleMinBase = -pi/4, angleMaxBase = pi/4,
@@ -19,14 +20,16 @@ class meArm():
     	self.servoInfo["gripper"] = self.setupServo(sweepMinGripper, sweepMaxGripper, angleMinGripper, angleMaxGripper)
     	
     # Adafruit servo driver has four 'blocks' of four servo connectors, 0, 1, 2 or 3.
-    def begin(self, block = 0, address = 0x40):
+    def begin(self, pinBase="P9_14", pinShoulder="P9_16", pinElbow="P9_21", pinGripper="P9_22"):
         """Call begin() before any other meArm calls.  Optional parameters to select a different block of servo connectors or different I2C address."""
-        self.pwm = PWM(address) # Address of Adafruit PWM servo driver
-    	self.base = block * 4
-    	self.shoulder = block * 4 + 1
-    	self.elbow = block * 4 + 2
-    	self.gripper = block * 4 + 3
-    	self.pwm.setPWMFreq(60)
+    	self.base = pinBase
+    	self.shoulder = pinShoulder
+    	self.elbow = pinElbow
+    	self.gripper = pinGripper
+    	PWM.start(pinBase, 60, 60)
+    	PWM.start(pinShoulder, 60, 60)
+    	PWM.start(pinElbow, 60, 60)
+    	PWM.start(pinGripper, 60, 60)
     	self.openGripper()
     	self.goDirectlyTo(0, 100, 50)
     	
@@ -46,8 +49,12 @@ class meArm():
     
     def angle2pwm(self, servo, angle):
         """Work out pulse length to use to achieve a given requested angle taking into account stored calibration data"""
-    	ret = 150 + int(0.5 + (self.servoInfo[servo]["zero"] + self.servoInfo[servo]["gain"] * angle) * 450 / 180)
-    	return ret
+    	dutyMin = 3
+        dutyMax = 14.5
+        dutySpan = dutyMax - dutyMin
+    	angDeg = self.servoInfo[servo]["zero"] + self.servoInfo[servo]["gain"] * angle
+    	duty = 100 - ((angDeg / 180) * dutySpan + dutyMin) 
+    	return duty
     	
     def goDirectlyTo(self, x, y, z):
         """Set servo angles so as to place the gripper at a given Cartesian point as quickly as possible, without caring what path it takes to get there"""
@@ -56,14 +63,13 @@ class meArm():
     		radBase = angles[0]
     		radShoulder = angles[1]
     		radElbow = angles[2]
-    		self.pwm.setPWM(self.base, 0, self.angle2pwm("base", radBase))
-    		self.pwm.setPWM(self.shoulder, 0, self.angle2pwm("shoulder", radShoulder))
-    		self.pwm.setPWM(self.elbow, 0, self.angle2pwm("elbow", radElbow))
+    		PWM.set_duty_cycle(self.base, self.angle2pwm("base", radBase))
+    		PWM.set_duty_cycle(self.shoulder, self.angle2pwm("shoulder", radShoulder))
+    		PWM.set_duty_cycle(self.elbow, self.angle2pwm("elbow", radElbow))
     		self.x = x
     		self.y = y
     		self.z = z
-    		print "goto %s" % ([x,y,z])
-    		
+
     def gotoPoint(self, x, y, z):
         """Travel in a straight line from current position to a requested position"""
     	x0 = self.x
@@ -81,12 +87,12 @@ class meArm():
     	
     def openGripper(self):
         """Open the gripper, dropping whatever is being carried"""
-    	self.pwm.setPWM(self.gripper, 0, self.angle2pwm("gripper", pi/4.0))
+    	PWM.set_duty_cycle(self.gripper, self.angle2pwm("gripper", pi/4.0))
     	time.sleep(0.3)
     	
     def closeGripper(self):
         """Close the gripper, grabbing onto anything that might be there"""
-    	self.pwm.setPWM(self.gripper, 0, self.angle2pwm("gripper", -pi/4.0))
+    	PWM.set_duty_cycle(self.gripper, self.angle2pwm("gripper", -pi/4.0))
     	time.sleep(0.3)
     
     def isReachable(self, x, y, z):
