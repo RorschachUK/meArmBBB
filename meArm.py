@@ -19,7 +19,7 @@ class meArm():
     	self.servoInfo["gripper"] = self.setupServo(sweepMinGripper, sweepMaxGripper, angleMinGripper, angleMaxGripper)
     	
     # Adafruit servo driver has four 'blocks' of four servo connectors, 0, 1, 2 or 3.
-    def begin(self, pinBase="P9_14", pinShoulder="P9_16", pinElbow="P9_21", pinGripper="P9_22"):
+    def begin(self, pinBase="P9_14", pinShoulder="P9_22", pinElbow="P9_28", pinGripper="P9_42"):
         """Call begin() before any other meArm calls.  Optional parameters to select a different block of servo connectors or different I2C address."""
     	self.base = pinBase
     	self.shoulder = pinShoulder
